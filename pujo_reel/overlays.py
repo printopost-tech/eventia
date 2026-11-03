@@ -6,7 +6,8 @@ States (one PNG each, swapped in on hard cuts by build.py):
   help_1..3   logo + "How Eventia can help you" + one benefit card (1/3, 2/3, 3/3)
   cta.png     end card: headline, "Reach out to us for such packages", BOOK NOW, phone
 
-Usage: python3 overlays.py OUT_DIR
+Usage: python3 overlays.py OUT_DIR [v1|tour]
+  tour: title, ch_1..5 (tour-story chapter cards), cta
 """
 import sys
 from pathlib import Path
@@ -159,12 +160,15 @@ def top_block(canvas, heading):
         d.text((x0, b2), s, font=fnt, fill=WHITE, anchor="ls")
         commit(canvas, lay, blur=5)
         canvas.alpha_composite(em, (round(x0 + tw + gap), round(b2 - cap_height(fnt) - 6)))
+    elif heading == "tour":
+        base = text_c(canvas, y + 26, "Our Durga Puja Tour", font("PlayfairDisplay-ExtraBold.ttf", 76), SAFFRON, blur=7)
+        text_c(canvas, base + 22, "a day with Eventia", font("PlayfairDisplay-Bold.ttf", 52), WHITE, blur=6)
     else:
         base = text_c(canvas, y + 30, "How Eventia", font("PlayfairDisplay-ExtraBold.ttf", 88), SAFFRON, blur=7)
         text_c(canvas, base + 22, "can help you", font("PlayfairDisplay-Bold.ttf", 64), WHITE, blur=6)
 
 
-def card(canvas, y, icon, title, sub, step):
+def card(canvas, y, icon, title, sub, step, total=3):
     """Maroon glass card with gold border: big icon, title, sub-line and a step counter."""
     x0, x1 = 90, W - 90
     h = 210
@@ -188,7 +192,7 @@ def card(canvas, y, icon, title, sub, step):
     d.text((tx, y + 92), title, font=tf, fill=CREAM + (255,), anchor="ls")
     d.text((tx, y + 152), sub, font=sf, fill=GOLD_LIGHT + (255,), anchor="ls")
     # step dots
-    for k in range(3):
+    for k in range(total):
         cx = tx + 6 + k * 30
         cy = y + 186
         rr = 7
@@ -240,9 +244,34 @@ def cta(canvas):
     text_c(canvas, yp + 30, "EVENTIA  •  KOLKATA", font("Cinzel-SemiBold.ttf", 32), GOLD_LIGHT, tracking=4, blur=4)
 
 
-def main(out_dir):
+# V2 (tour story): one card per chapter of the day
+CHAPTERS = [
+    ("directions_bus", "Meet & board", "we gather, we board, we go"),
+    ("airline_seat_recline_normal", "On the road", "comfy bus ride, snacks on board"),
+    ("tour", "Guided pandal hopping", "led by our tour guide"),
+    ("restaurant", "Rajbari & Mahabhog", "heritage visit + traditional lunch"),
+    ("photo_camera", "Memories made", "happy faces, all day long"),
+]
+
+
+def main_tour(out):
+    c = layer(); top_block(c, "title"); c.save(out / "title.png")
+    for i, (icon, title, sub) in enumerate(CHAPTERS):
+        c = layer()
+        top_block(c, "tour")
+        scrim(c, [(0, 0), (1150, 0), (1380, 0.45), (1620, 0.45), (1800, 0)])
+        card(c, 1330, icon, title, sub, i, len(CHAPTERS))
+        c.save(out / f"ch_{i + 1}.png")
+    c = layer(); cta(c); c.save(out / "cta.png")
+
+
+def main(out_dir, variant="v1"):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
+    if variant == "tour":
+        main_tour(out)
+        print("overlays ->", out)
+        return
     c = layer(); top_block(c, "title"); c.save(out / "title.png")
     for i, (icon, title, sub) in enumerate(BENEFITS):
         c = layer()
@@ -255,4 +284,4 @@ def main(out_dir):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "overlays")
+    main(sys.argv[1] if len(sys.argv) > 1 else "overlays", sys.argv[2] if len(sys.argv) > 2 else "v1")

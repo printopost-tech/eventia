@@ -11,7 +11,7 @@ Sections follow the edit (bar = 2.1333 s):
   bar  6    16th-note dhak roll, crescendo   (second fast montage)
   bars 7-9  gong hit, drone + melody, fade   (CTA end card)
 
-Usage: python3 music.py OUT.wav [SECONDS]
+Usage: python3 music.py OUT.wav [SECONDS] [v1|tour]
 """
 import sys
 import wave
@@ -208,6 +208,78 @@ def build(seconds):
     return mix
 
 
+def build_tour(seconds, chapter_bars=(2, 4, 6, 9, 11), end_bar=13):
+    """Longer, calmer arrangement for the tour-story cut (V2).
+
+    bars 0-1 full groove (hook montage); then a lighter groove with flute
+    phrases, a big hit + kashor accent on each chapter change; from end_bar
+    the gong / drone / melody outro, fading out.
+    """
+    n = int(seconds * SR)
+    drums, metal, tonal, fx = (np.zeros(n) for _ in range(4))
+
+    def groove(b, pattern, gain=1.0):
+        t0 = b * BAR
+        for k, c in enumerate(pattern):
+            t = t0 + k * STEP
+            if c == "L":
+                place(drums, t, dhak_low(), 0.95 * gain)
+            elif c == "h":
+                place(drums, t, dhak_high(), 0.32 * gain * (0.8 + 0.4 * rng.random()))
+            elif c == "H":
+                place(drums, t, dhak_high(1.05), 0.55 * gain)
+        for k in range(4):
+            place(metal, t0 + k * BEAT + BEAT / 2, kashor(0.22), 0.55 * gain)
+
+    def melody(b0, phrase, gain=0.3):
+        for off, sw, ln in phrase:
+            place(tonal, b0 * BAR + off * STEP, flute(SA * SW[sw], ln * STEP), gain)
+
+    place(fx, 0, gong(2.5), 0.55)
+    groove(0, GROOVE)
+    groove(1, GROOVE[:12] + "LHLH")
+    place(tonal, 2 * BAR, drone((end_bar - 2) * BAR + 0.6), 0.4)
+    for b in range(2, end_bar):
+        groove(b, GROOVE, 0.6)
+        if b in chapter_bars:
+            place(drums, b * BAR, dhak_low(0.9), 1.0)
+            place(metal, b * BAR, kashor(0.5), 0.45)
+    phrases = [PHRASE_A, PHRASE_B]
+    for k, b in enumerate(range(2, end_bar - 1, 2)):
+        melody(b, phrases[k % 2])
+    for k, c in enumerate(ROLL):  # roll into the outro
+        g = 0.4 + 0.5 * k / 15
+        t = (end_bar - 1) * BAR + k * STEP
+        place(drums, t, dhak_low() if c == "L" else dhak_high(1 + 0.02 * (k % 4)), g * (0.9 if c == "L" else 0.55))
+    place(fx, end_bar * BAR, gong(4.5), 0.8)
+    place(drums, end_bar * BAR, dhak_low(0.85), 1.1)
+    place(tonal, end_bar * BAR, drone(max(0.5, seconds - end_bar * BAR)), 0.55)
+    melody(end_bar, PHRASE_B, 0.34)
+    for b in range(end_bar, int(seconds / BAR)):
+        for k in (0, 6, 8, 11):
+            place(drums, b * BAR + k * STEP, dhak_low(), 0.5)
+        for k in range(4):
+            place(metal, b * BAR + k * BEAT + BEAT / 2, kashor(0.22), 0.3)
+    return master(drums, metal, tonal, fx)
+
+
+def master(drums, metal, tonal, fx):
+    tonal = reverb(tonal, 1.6, 0.3)
+    metal = reverb(metal, 1.0, 0.2)
+    drums = reverb(drums, 0.8, 0.12)
+    d = int(0.012 * SR)
+    L = drums + metal + 0.9 * tonal + fx
+    R = drums + np.concatenate([np.zeros(d), metal[:-d]]) + np.concatenate([np.zeros(d), tonal[:-d]]) + fx
+    mix = np.stack([L, R], axis=1)
+    mix /= np.percentile(np.abs(mix), 99.9)
+    mix = np.tanh(mix * 0.95)
+    mix /= np.max(np.abs(mix)) / 0.89
+    fi, fo = int(0.02 * SR), int(2.0 * SR)
+    mix[:fi] *= np.linspace(0, 1, fi)[:, None]
+    mix[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 1.5
+    return mix
+
+
 def save(path, mix):
     pcm = (mix * 32767).astype("<i2")
     with wave.open(path, "wb") as w:
@@ -220,5 +292,6 @@ def save(path, mix):
 if __name__ == "__main__":
     out = sys.argv[1]
     seconds = float(sys.argv[2]) if len(sys.argv) > 2 else 10 * BAR
-    save(out, build(seconds))
+    variant = sys.argv[3] if len(sys.argv) > 3 else "v1"
+    save(out, build_tour(seconds) if variant == "tour" else build(seconds))
     print(f"wrote {out} ({seconds:.2f}s, {BPM} BPM)")
