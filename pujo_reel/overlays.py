@@ -224,12 +224,16 @@ def pill(canvas, y, text, fnt, fill_top, fill_bottom, text_fill, icon=None, pad_
 
 def cta(canvas):
     scrim(canvas, [(0, 0.55), (420, 0.2), (700, 0.0), (980, 0.0), (1250, 0.62), (H, 0.86)])
-    y = logo(canvas, 130, 300)
-    text_c(canvas, y + 26, "Durga Puja", font("PlayfairDisplay-ExtraBold.ttf", 80), SAFFRON, blur=7)
-    base = text_c(canvas, 1050, "Want a Pujo like this?", font("PlayfairDisplay-ExtraBold.ttf", 76),
-                  None or CREAM, grad=(CREAM, GOLD_LIGHT), blur=7)
-    base = text_c(canvas, base + 28, "Reach out to us for such packages", font("Lora-SemiBold.ttf", 44), WHITE, blur=5)
-    yb = pill(canvas, base + 50, "BOOK NOW", font("Cinzel-Bold.ttf", 60), SAFFRON, (226, 150, 10),
+    logo(canvas, 130, 300)
+    # Success-story end card: a general Eventia tagline, not tied to Durga Puja.
+    yb = pill(canvas, 990, "SUCCESS STORY", font("Cinzel-Bold.ttf", 34), CRIMSON, MAROON_DARK,
+              GOLD_LIGHT, icon="verified", pad_x=40, pad_y=20, outline=GOLD)
+    base = text_c(canvas, yb + 36, "Another Successful Event", font("PlayfairDisplay-ExtraBold.ttf", 72),
+                  CREAM, grad=(CREAM, GOLD_LIGHT), blur=7)
+    base = text_c(canvas, base + 26, "by Eventia", font("PlayfairDisplay-ExtraBold.ttf", 72), SAFFRON, blur=7)
+    base = text_c(canvas, base + 30, "Planning your next event? Let’s make it a success.",
+                  font("Lora-SemiBold.ttf", 38), WHITE, blur=5)
+    yb = pill(canvas, base + 46, "BOOK A CALL", font("Cinzel-Bold.ttf", 56), SAFFRON, (226, 150, 10),
               MAROON_DARK, icon="event_available", outline=GOLD_LIGHT)
     yp = pill(canvas, yb + 34, PHONE, font("Lora-Bold.ttf", 56), CRIMSON, MAROON_DARK, CREAM,
               icon="call", outline=GOLD)
