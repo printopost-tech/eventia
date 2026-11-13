@@ -72,14 +72,14 @@ clip("ch_3", "temple", 3.0, HALF)
 clip("ch_3", "bagbazar", 19.0, HALF)
 # bars 9-10: Rajbari & Mahabhog
 clip("ch_4", "rajbari", 2.0, HALF)
-photo("ch_4", "0084", HALF)
+clip("ch_4", "rb_inside", 8.0, HALF)
 clip("ch_4", "lunch", 3.0, HALF)
 clip("ch_4", "hall", 4.0, HALF)
 # bars 11-12: memories
 photo("ch_5", "0073", HALF, "print", 880)
 photo("ch_5", "0089", HALF)
 photo("ch_5", "0082", HALF, "print", 880)
-photo("ch_5", "0087", HALF)
+photo("ch_5", "0074", HALF)
 # bars 13-15: success card over the whole group
 photo("cta", "0075", BAR * 3, "print", 640)
 
