@@ -34,7 +34,8 @@ def with_mask(n_img, n_mask):
     out = im.convert('RGBA'); out.putalpha(m)
     return out.crop(out.getbbox())
 
-LOGO = with_mask(5, 6)
+LOGO = Image.open(E + '/logo_new_hi.png').convert('RGBA')
+CREAM = (250, 247, 224)
 ROSE = with_mask(1, 2)
 
 def prep_cover(im, scale=1.12, sharpen=True):

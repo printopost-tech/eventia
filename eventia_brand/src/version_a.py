@@ -36,17 +36,19 @@ ROSE_TR = rose(0.55); ROSE_BL = rose(0.5, flip=True, rot=180)
 ROSE_SMALL = rose(0.30)
 ROSE_TR_S = rose(0.36); ROSE_BL_S = rose(0.36, flip=True, rot=180)
 
-def logo_badge(h):
+def logo_badge(h, pill=False):
     lg = LOGO.resize((int(LOGO.width * h / LOGO.height), h), Image.LANCZOS)
-    pad = int(h * 0.16); bw, bh = lg.width + 2 * pad, lg.height + 2 * pad
-    out = Image.new('RGBA', (bw + 40, bh + 40), (0, 0, 0, 0))
-    sh = Image.new('RGBA', out.size, (0, 0, 0, 0))
-    ImageDraw.Draw(sh).rounded_rectangle((20, 26, 20 + bw, 26 + bh), int(h * .18), fill=(0, 0, 0, 110))
-    out.alpha_composite(sh.filter(ImageFilter.GaussianBlur(10)))
-    ImageDraw.Draw(out).rounded_rectangle((20, 20, 20 + bw, 20 + bh), int(h * .18), fill=IVORY + (245,))
-    out.alpha_composite(lg, (20 + pad, 20 + pad))
+    padx, pady = (int(h * .45), int(h * .32)) if pill else (30, 30)
+    bw, bh = lg.width + 2 * padx, lg.height + 2 * pady
+    out = Image.new('RGBA', (bw, bh), (0, 0, 0, 0))
+    if pill:
+        ImageDraw.Draw(out).rounded_rectangle((0, 0, bw - 1, bh - 1), bh // 2, fill=TEAL_D + (190,), outline=CREAM + (120,), width=2)
+    else:
+        sh = Image.new('RGBA', out.size, (0, 0, 0, 0)); sh.alpha_composite(Image.merge('RGBA', (*Image.new('RGB', lg.size, 0).split(), lg.split()[3])), (padx, pady + 3))
+        out.alpha_composite(sh.filter(ImageFilter.GaussianBlur(8)))
+    out.alpha_composite(lg, (padx, pady))
     return out
-LOGO_SMALL = logo_badge(120)
+LOGO_SMALL = logo_badge(52, pill=True)
 LOGO_POS = (W - LOGO_SMALL.width - 20, 100)
 
 def contact_strip():
@@ -179,11 +181,12 @@ def scene_intro(s, tt):
     la = ease_back((p - 0.4) / 0.9)
     if la > 0:
         med = Image.new('RGBA', (760, 760), (0, 0, 0, 0)); d = ImageDraw.Draw(med)
-        d.ellipse((20, 20, 740, 740), fill=IVORY + (255,)); d.ellipse((44, 44, 716, 716), outline=TEAL + (130,), width=3)
+        d.ellipse((20, 20, 740, 740), fill=TEAL_D + (255,)); d.ellipse((44, 44, 716, 716), outline=CREAM + (150,), width=3)
         lg = LOGO.resize((440, int(440 * LOGO.height / LOGO.width)), Image.LANCZOS)
-        lg = LOGO.resize((380, int(380 * LOGO.height / LOGO.width)), Image.LANCZOS)
-        med.alpha_composite(lg, ((760 - lg.width) // 2, 120))
-        d.text((380, 625), 'Wedding Planner', font=f_script(70), fill=TEAL + (255,), anchor='mm')
+        lg = LOGO.resize((600, int(600 * LOGO.height / LOGO.width)), Image.LANCZOS)
+        med.alpha_composite(lg, ((760 - lg.width) // 2, 270))
+        d.line((270, 500, 490, 500), fill=BLUSH + (220,), width=2)
+        d.text((380, 575), 'Wedding Planner', font=f_script(78), fill=BLUSH + (255,), anchor='mm')
         sh = Image.new('RGBA', (820, 820), (0, 0, 0, 0)); ImageDraw.Draw(sh).ellipse((50, 66, 770, 786), fill=(0, 0, 0, 120))
         paste_center(lay, sh.filter(ImageFilter.GaussianBlur(20)), W / 2, 830, min(1, la))
         paste_center(lay, med, W / 2, 820, min(1, la * 1.4), scale=0.6 + 0.4 * la)
@@ -218,7 +221,7 @@ def scene_cta(s, tt):
     a = ease_out(p / .7)
     lay.alpha_composite(alpha(ROSE_TR_S, a), (W - ROSE_TR_S.width + 110, -10 - int((1 - a) * 60)))
     lay.alpha_composite(alpha(ROSE_BL_S, a), (-100, H - ROSE_BL_S.height + 60 + int((1 - a) * 60)))
-    paste_center(lay, logo_badge(250), W / 2, 470, a, scale=.9 + .1 * a)
+    paste_center(lay, logo_badge(165), W / 2, 500, a, scale=.9 + .1 * a)
     b = ease_out((p - .4) / .7)
     paste_center(lay, text_layer("Let's plan your", f_lora(56), (255, 228, 222, 255)), W / 2, 760 + (1 - b) * 30, b)
     paste_center(lay, text_layer('Dream Wedding', f_script(170), WHITE + (255,), blur=12), W / 2, 890 + (1 - b) * 30, b)
@@ -240,7 +243,7 @@ def scene_cta(s, tt):
         icon_chat(d, 52, 26, 46, BLUSH + (255,))
         d.text((320, 50), 'DM us to book', font=f_sansb(40), fill=BLUSH + (255,), anchor='mm')
         paste_center(lay, chat, W / 2, 1390, e)
-        paste_center(lay, text_layer('eventia  •  Event Management  •  Wedding Planner', f_sans(28), (255, 236, 230, 200), blur=4), W / 2, 1560, e)
+        paste_center(lay, text_layer('EVENTIA  •  Event Management  •  Wedding Planner', f_sans(28), (255, 236, 230, 200), blur=4), W / 2, 1560, e)
     return lay
 
 RENDER = {'intro': scene_intro, 'photo': scene_photo, 'services': lambda s, tt: card_services(s, 0, tt),

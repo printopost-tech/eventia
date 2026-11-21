@@ -56,13 +56,13 @@ def darken(im, a):
 def teal_fill():
     return Image.new('RGBA', (W, H), TEAL_D + (255,))
 
-def logo_card(h):
+def logo_card(h, bg=True):
     lg = LOGO.resize((int(LOGO.width * h / LOGO.height), h), Image.LANCZOS)
-    pad = int(h * .14)
-    out = Image.new('RGBA', (lg.width + 2 * pad, lg.height + 2 * pad), (0, 0, 0, 0))
-    ImageDraw.Draw(out).rounded_rectangle((0, 0, out.width - 1, out.height - 1), int(h * .16), fill=(255, 255, 255, 250))
-    out.alpha_composite(lg, (pad, pad)); return out
-LOGO_S = logo_card(105)
+    px, py = int(h * .4), int(h * .3)
+    out = Image.new('RGBA', (lg.width + 2 * px, lg.height + 2 * py), (0, 0, 0, 0))
+    if bg: ImageDraw.Draw(out).rounded_rectangle((0, 0, out.width - 1, out.height - 1), int(h * .25), fill=TEAL_D + (200,))
+    out.alpha_composite(lg, (px, py)); return out
+LOGO_S = logo_card(52)
 
 def label_block(title, sub, tt_in):
     """big bold title with yellow underline bar + teal tag for sub, slides from left"""
@@ -124,9 +124,11 @@ def render(tt):
                 rr = 200 + r * 700; aa = int(120 * max(0, 1 - r))
                 d.ellipse((W / 2 - rr, 820 - rr, W / 2 + rr, 820 + rr), outline=TEAL_L + (aa,), width=6)
         s = ease_back(p * 2.4)
-        lg = LOGO.resize((560, int(560 * LOGO.height / LOGO.width)), Image.LANCZOS)
-        card = Image.new('RGBA', (680, 680), (0, 0, 0, 0)); ImageDraw.Draw(card).rounded_rectangle((0, 0, 679, 679), 90, fill=WHITE + (255,))
-        card.alpha_composite(lg, ((680 - lg.width) // 2, (680 - lg.height) // 2))
+        lg = LOGO.resize((780, int(780 * LOGO.height / LOGO.width)), Image.LANCZOS)
+        card = Image.new('RGBA', (900, 420), (0, 0, 0, 0)); cd = ImageDraw.Draw(card)
+        cd.rounded_rectangle((0, 0, 899, 419), 40, fill=TEAL + (255,), outline=CREAM + (200,), width=4)
+        cd.rounded_rectangle((16, 16, 883, 403), 30, outline=YELLOW + (160,), width=2)
+        card.alpha_composite(lg, ((900 - lg.width) // 2, (420 - lg.height) // 2))
         paste_center(fr, card, W / 2, 820, min(1, p * 5), max(0.05, s))
         b = ease_out((p - 0.35) / 0.3)
         paste_center(fr, text_layer('EVENT MANAGEMENT  •  WEDDING PLANNER', f_b(36), YELLOW + (255,), blur=6), W / 2, 1270 + (1 - b) * 30, b)
@@ -198,7 +200,7 @@ def render(tt):
     # diagonal yellow stripe sweep
     sw = ease_out(p / .5)
     d.polygon([(-200 + sw * 0, 1460), (W * sw + 200, 1300), (W * sw + 200, 1360), (-200, 1520)], fill=TEAL_L + (255,))
-    paste_center(fr, logo_card(200), W / 2, 360, ease_out(p / .4), .8 + .2 * ease_back(p / .5))
+    paste_center(fr, logo_card(120, bg=False), W / 2, 380, ease_out(p / .4), .8 + .2 * ease_back(p / .5))
     for k, (w_, y) in enumerate([("LET'S PLAN", 690), ('YOUR BIG DAY.', 820)]):
         a = ease_out((p - .3 - k * .25) / .35)
         tl = text_layer(w_, f_black(118 if k == 0 else 106), (WHITE if k == 0 else YELLOW) + (255,), blur=10)
