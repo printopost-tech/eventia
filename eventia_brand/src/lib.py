@@ -22,8 +22,11 @@ PHONE = '+91 74390 12840'
 
 def font(name, size): return ImageFont.truetype(FD + name, size)
 
+OVERRIDE = {55: os.path.join(os.path.dirname(S), 'images', '5.jpg')}  # client-supplied replacement
+
 def img(n):
     """load extracted pdf image by its number, e.g. 56 -> i-010-056.*"""
+    if n in OVERRIDE: return Image.open(OVERRIDE[n])
     for f in os.listdir(E + '/img'):
         if f.split('-')[2].split('.')[0] == f'{n:03d}':
             return Image.open(E + '/img/' + f)
