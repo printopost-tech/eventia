@@ -8,7 +8,7 @@ PREVIEW = sys.argv[3] if len(sys.argv) > 3 else None
 O = S + '/oasis'
 SEG = O + '/seg_real'
 W, H, FPS = 1080, 1920, 30
-XF = 0.5
+XF = 0.12   # near-hard cuts on the beat
 F = S + '/fonts/'
 def font(n, s): return ImageFont.truetype(F + n, s)
 
@@ -40,7 +40,20 @@ scenes = [
 t = 0
 for s in scenes:
     s['t0s'] = t; s['t1s'] = t + s['d']; t += s['d'] - XF
-TOTAL = scenes[-1]['t1s']
+# ---- beat-sync: scene starts land exactly on song beats ----
+SONG_START = 35.97
+BEATS = np.load(S + '/oasis/song/beats.npy') - SONG_START
+BEATS = BEATS[BEATS >= -0.01]
+BOUNDS = [0, 7, 14, 20, 24, 26, 30, 34, 38, 44, 48, 54, 60, 66, 70]   # beat index where each scene starts
+assert len(BOUNDS) == len(scenes)
+TOTAL = 44.0
+for k, s in enumerate(scenes):
+    s['t0s'] = 0.0 if k == 0 else float(BEATS[BOUNDS[k]])
+    s['t1s'] = (float(BEATS[BOUNDS[k + 1]]) if k + 1 < len(scenes) else TOTAL) + XF
+    s['d'] = s['t1s'] - s['t0s']
+DROP = float(BEATS[14])
+CUTS = [s['t0s'] for s in scenes[1:]]
+print('drop at', DROP, 'end card at', scenes[-1]['t0s'])
 print('total', TOTAL, flush=True)
 
 # ---------------- video readers ----------------
@@ -318,18 +331,28 @@ def render_frame(tt, readers):
     for s in scenes:
         if tt >= s['t1s'] and readers.get(id(s)):
             readers[id(s)].p.kill(); readers[id(s)] = False
-    img = Image.fromarray(np.clip(base * VIG, 0, 255).astype(np.uint8)).convert('RGBA')
-    img.alpha_composite(sparkles(tt))
+    img = Image.fromarray(np.clip(base * VIG, 0, 255).astype(np.uint8))
+    # zoom-punch on every cut after the drop
+    last_cut = max([c for c in CUTS if c <= tt], default=None)
+    if last_cut is not None and last_cut >= DROP - 0.01 and act[-1] is not scenes[-1]:
+        k = 1 - ease((tt - last_cut) / 0.28)
+        if k > 0:
+            z = 1 + (0.09 if abs(last_cut - DROP) < 0.02 else 0.05) * k
+            img = img.transform((W, H), Image.AFFINE, (1 / z, 0, W * (1 - 1 / z) / 2, 0, 1 / z, H * (1 - 1 / z) / 2), Image.BILINEAR)
+    img = img.convert('RGBA')
+    # white flash on the drop
+    fl = 0.55 * (1 - ease((tt - DROP) / 0.35)) if DROP <= tt < DROP + 0.35 else 0
+    if fl > 0: img.alpha_composite(Image.new('RGBA', (W, H), (255, 255, 255, int(255 * fl))))
     fw = fireworks(tt)
     if fw is not None: img.alpha_composite(fw)
     for s in act:
         if 'caplay' in s:
-            a0 = s['t0s'] + 0.25; a1 = s['t1s'] - XF
-            a = ease((tt - a0) / 0.5) * ease((a1 - tt) / 0.4)
-            if s['cap'] == 'food2': a = ease((a1 - tt) / 0.4)  # continuous with previous
-            if s['cap'] == 'food': a = ease((tt - a0) / 0.5)
+            a0 = s['t0s'] + 0.08; a1 = s['t1s'] - XF
+            a = ease((tt - a0) / 0.3) * ease((a1 - tt) / 0.22)
+            if s['cap'] == 'food2': a = ease((a1 - tt) / 0.22)  # continuous with previous
+            if s['cap'] == 'food': a = ease((tt - a0) / 0.3)
             if a > 0:
-                dy = int((1 - ease((tt - a0) / 0.6)) * 30)
+                dy = int((1 - ease((tt - a0) / 0.35)) * 30)
                 img.alpha_composite(with_alpha(s['caplay'], a), (0, dy))
     e = scenes[-1]; ea = ease((tt - e['t0s'] - 0.1) / 0.7)
     intro = scenes[0]
