@@ -25,12 +25,13 @@ scenes = [
     dict(seg='C0171', d=4.0, pos=(0.40, 0.55), cap='title'),
     dict(seg='C0163', d=3.4, pos=(0.50, 0.50), cap='dates'),
     dict(seg='dji_fly_20260505_173434', d=3.0, pos=(0.5, 0.5), ss=1.0, cap=('Celebrate in', 'Purulia')),
-    dict(seg='C0033', d=2.6, pos=(0.35, 0.55)),
-    dict(seg='C0060', d=2.8, pos=(0.45, 0.55), cap=('Cozy', 'Cottage Stays')),
-    dict(seg='C0119', d=3.0, pos=(0.30, 0.45), cap='food'),
-    dict(seg='C0126', d=2.4, pos=(0.45, 0.55), cap='food2'),
-    dict(seg='dji_fly_20260505_214014', d=3.2, pos=(0.5, 0.5), cap=('31 DEC', 'Pool Party')),
-    dict(seg='C0149', d=3.2, pos=(0.35, 0.55), cap=('31 DEC', 'DJ & Live Band')),
+    dict(seg='IMG_COTTAGES', d=2.6, pos=(0.5, 0.5), cap=('Cozy', 'Cottage Stays')),
+    dict(seg='IMG_ROOM', d=2.8, pos=(0.5, 0.5)),
+    dict(seg='VID20250719211231', d=3.0, pos=(0.5, 0.5), cap='food'),
+    dict(seg='VID20250719211656', d=2.4, pos=(0.5, 0.5), cap='food2'),
+    dict(seg='POOL_NEW', d=3.2, pos=(0.5, 0.5), cap=('31 DEC', 'Pool Party')),
+    dict(seg='C0236', d=3.2, pos=(0.40, 0.52), cap=('31 DEC', 'DJ & Live Band'), capdy=-430),
+    dict(seg='C0252', d=1.2, pos=(0.40, 0.42), ss=1.3),
     dict(seg='C0165', d=3.4, pos=(0.60, 0.70), ss=8.0, cap=('31 DEC', 'Cake Cutting & Fireworks'), fw=True),
     dict(seg='C0083', d=3.2, pos=(0.30, 0.48), cap=('1 JAN', 'Tribal Dance')),
     dict(seg='C0133', d=3.2, pos=(0.40, 0.50), cap=('1 JAN', 'Chhau Performance')),
@@ -44,7 +45,7 @@ for s in scenes:
 SONG_START = 35.97
 BEATS = np.load(S + '/oasis/song/beats.npy') - SONG_START
 BEATS = BEATS[BEATS >= -0.01]
-BOUNDS = [0, 7, 14, 20, 24, 26, 30, 34, 38, 44, 48, 54, 60, 66, 70]   # beat index where each scene starts
+BOUNDS = [0, 7, 14, 20, 24, 28, 32, 36, 40, 46, 50, 52, 58, 62, 66, 70]   # beat index where each scene starts
 assert len(BOUNDS) == len(scenes)
 TOTAL = 44.0
 for k, s in enumerate(scenes):
@@ -353,7 +354,7 @@ def render_frame(tt, readers):
             if s['cap'] == 'food': a = ease((tt - a0) / 0.3)
             if a > 0:
                 dy = int((1 - ease((tt - a0) / 0.35)) * 30)
-                img.alpha_composite(with_alpha(s['caplay'], a), (0, dy))
+                img.alpha_composite(with_alpha(s['caplay'], a), (0, dy + s.get('capdy', 0)))
     e = scenes[-1]; ea = ease((tt - e['t0s'] - 0.1) / 0.7)
     intro = scenes[0]
     la = ease((tt - intro['t1s'] + XF) / 0.6) * (1 - ea)   # small logo after intro
