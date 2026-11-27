@@ -27,14 +27,15 @@ scenes = [
     dict(seg='dji_fly_20260505_173434', d=3.0, pos=(0.5, 0.5), ss=1.0, cap=('Celebrate in', 'Purulia')),
     dict(seg='IMG_COTTAGES', d=2.6, pos=(0.5, 0.5), cap=('Cozy', 'Cottage Stays')),
     dict(seg='IMG_ROOM', d=2.8, pos=(0.5, 0.5)),
-    dict(seg='VID20250719211231', d=3.0, pos=(0.5, 0.5), cap='food'),
-    dict(seg='VID20250719211656', d=2.4, pos=(0.5, 0.5), cap='food2'),
-    dict(seg='POOL_NEW', d=3.2, pos=(0.5, 0.5), cap=('31 DEC', 'Pool Party')),
-    dict(seg='C0236', d=3.2, pos=(0.40, 0.52), cap=('31 DEC', 'DJ & Live Band'), capdy=-430),
+    dict(seg='BUFFET', d=3.0, pos=(0.5, 0.5), cap='food'),
+    dict(seg='VID20250719211231', d=1.5, pos=(0.5, 0.5), cap='foodmid'),
+    dict(seg='VID20250719211656', d=1.5, pos=(0.5, 0.5), cap='food2'),
+    dict(seg='POOL_NEW', d=3.2, pos=(0.5, 0.5), cap=('31st Dec', 'Pool Party')),
+    dict(seg='C0236', d=3.2, pos=(0.40, 0.52), cap=('31st Dec', 'DJ & Live Band'), capdy=-430),
     dict(seg='C0252', d=1.2, pos=(0.40, 0.42), ss=1.3),
-    dict(seg='C0165', d=3.4, pos=(0.60, 0.70), ss=8.0, cap=('31 DEC', 'Cake Cutting & Fireworks'), fw=True),
-    dict(seg='C0083', d=3.2, pos=(0.30, 0.48), cap=('1 JAN', 'Tribal Dance')),
-    dict(seg='C0133', d=3.2, pos=(0.40, 0.50), cap=('1 JAN', 'Chhau Performance')),
+    dict(seg='C0165', d=3.4, pos=(0.60, 0.70), ss=8.0, cap=('31st Dec', 'Cake Cutting & Fireworks'), fw=True),
+    dict(seg='C0083', d=3.2, pos=(0.30, 0.48), cap=('1st Jan', 'Tribal Dance')),
+    dict(seg='C0133', d=3.2, pos=(0.40, 0.50), cap=('1st Jan', 'Chhau Performance')),
     dict(seg='C0157', d=2.6, pos=(0.45, 0.55)),
     dict(end=True, d=6.8, seg='C0165', ss=3.0, pos=(0.35, 0.45)),
 ]
@@ -45,7 +46,7 @@ for s in scenes:
 SONG_START = 35.97
 BEATS = np.load(S + '/oasis/song/beats.npy') - SONG_START
 BEATS = BEATS[BEATS >= -0.01]
-BOUNDS = [0, 7, 14, 20, 24, 28, 32, 36, 40, 46, 50, 52, 58, 62, 66, 70]   # beat index where each scene starts
+BOUNDS = [0, 7, 14, 20, 24, 28, 32, 36, 38, 40, 46, 50, 52, 58, 62, 66, 70]   # beat index where each scene starts
 assert len(BOUNDS) == len(scenes)
 TOTAL = 44.0
 for k, s in enumerate(scenes):
@@ -208,9 +209,9 @@ def make_cap(c):
     elif c == 'dates':
         backdrop(lay, 860, 650, 300, 150)
         shadow_text(lay, (W / 2, 730), 'JOIN US ON', font('cinzel600.ttf', 44), GOLD2, blur=6)
-        ribbon(lay, W / 2, 860, '31 Dec – 1 Jan', font('pf_semibold.ttf', 84), pw=640, ph=140)
+        ribbon(lay, W / 2, 860, '31st Dec – 1st Jan', font('pf_semibold.ttf', 78), pw=760, ph=140)
         shadow_text(lay, (W / 2, 1010), 'Two nights of celebration', font('pf_italic.ttf', 50), CREAM)
-    elif c in ('food', 'food2'):
+    elif c in ('food', 'food2', 'foodmid'):
         backdrop(lay, 860, 680, 300, 165)
         shadow_text(lay, (W / 2, 730), 'ALL MEALS INCLUDED', font('cinzel600.ttf', 40), GOLD2, blur=6)
         shadow_text(lay, (W / 2, 840), 'Breakfast • Snack • Dinner', font('pf_semibold.ttf', 68), WHITE, blur=10)
@@ -220,7 +221,7 @@ def make_cap(c):
     else:
         l1, l2 = c
         backdrop(lay, 860, 640, 270, 160)
-        if l1 in ('31 DEC', '1 JAN'):
+        if l1 in ('31st Dec', '1st Jan'):
             fnc = font('cinzel700.ttf', 42); tw = ImageDraw.Draw(lay).textlength(l1, font=fnc) + 56
             chip(lay, int(W / 2 - tw / 2), 740, l1, fnc)
             fs = 120 if len(l2) < 14 else (96 if len(l2) < 20 else 82)
@@ -240,7 +241,7 @@ def end_layer():
     lay.alpha_composite(big, ((W - big.width) // 2, 230))
     gold_text(lay, (W / 2, 760), 'Book Your', font('pf_bolditalic.ttf', 110))
     gold_text(lay, (W / 2, 880), 'Celebration', font('pf_bolditalic.ttf', 120))
-    shadow_text(lay, (W / 2, 975), 'CHRISTMAS & NEW YEAR  •  31 DEC – 1 JAN', font('cinzel600.ttf', 32), CREAM, blur=6)
+    shadow_text(lay, (W / 2, 975), 'CHRISTMAS & NEW YEAR  •  31st Dec – 1st Jan', font('cinzel600.ttf', 32), CREAM, blur=6)
     # phone pill
     pw, ph, py = 740, 124, 1045
     sh = Image.new('RGBA', lay.size, (0, 0, 0, 0))
@@ -352,6 +353,7 @@ def render_frame(tt, readers):
             a = ease((tt - a0) / 0.3) * ease((a1 - tt) / 0.22)
             if s['cap'] == 'food2': a = ease((a1 - tt) / 0.22)  # continuous with previous
             if s['cap'] == 'food': a = ease((tt - a0) / 0.3)
+            if s['cap'] == 'foodmid': a = 1.0
             if a > 0:
                 dy = int((1 - ease((tt - a0) / 0.35)) * 30)
                 img.alpha_composite(with_alpha(s['caplay'], a), (0, dy + s.get('capdy', 0)))
